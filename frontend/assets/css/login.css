@@ -1,0 +1,14 @@
+/* ══════════════════════════════════
+   SCREEN: LOGIN
+══════════════════════════════════ */
+#screen-login { background: var(--c-bg); justify-content: center; align-items: center; }
+.login-wrap { width: 100%; max-width: 400px; padding: 2rem; }
+.login-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 2.2rem; text-align: center; margin-bottom: 0.5rem; }
+.login-logo span { color: var(--c-accent); }
+.login-tagline { text-align: center; color: var(--c-muted); font-size: 0.9rem; margin-bottom: 2rem; }
+.login-card { background: var(--c-surface); border-radius: var(--radius); border: 1px solid var(--c-border); padding: 2rem; }
+.tab-switcher { display: flex; background: var(--c-surface2); border-radius: var(--radius-sm); padding: 3px; margin-bottom: 1.5rem; }
+.tab-btn { flex: 1; text-align: center; padding: 8px; border-radius: 6px; font-size: 0.88rem; font-weight: 500; cursor: pointer; border: none; background: none; color: var(--c-muted); transition: all 0.15s; }
+.tab-btn.active { background: var(--c-surface); color: var(--c-text); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+.forgot-link { font-size: 0.82rem; color: var(--c-accent); text-decoration: none; float: right; }
+.divider { border: none; border-top: 1px solid var(--c-border); margin: 1.5rem 0; }
