@@ -14,8 +14,12 @@ const enderecoSchema = new mongoose.Schema({
 const usuarioSchema = new mongoose.Schema(
   {
     nome: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
+    sobrenome: { type: String },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    telefone: { type: String },
     senha: { type: String, required: true },
+    resetSenhaToken: { type: String },
+    resetSenhaExpiraEm: { type: Date },
     endereco: [enderecoSchema],
     ativo: { type: Boolean, default: true },
   },

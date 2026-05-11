@@ -12,3 +12,6 @@
 .tab-btn.active { background: var(--c-surface); color: var(--c-text); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
 .forgot-link { font-size: 0.82rem; color: var(--c-accent); text-decoration: none; float: right; }
 .divider { border: none; border-top: 1px solid var(--c-border); margin: 1.5rem 0; }
+.reset-area { display: none; margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--c-border); }
+.reset-area.active { display: block; }
+.reset-code-box { background: var(--c-surface2); border-radius: var(--radius-sm); color: var(--c-text); font-size: 0.9rem; margin-bottom: 1rem; padding: 0.85rem; text-align: center; }

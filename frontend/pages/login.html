@@ -25,7 +25,7 @@
                 <input class="form-input" type="email" placeholder="seu@email.com" id="login-email">
                 </div>
                 <div class="form-group">
-                <label class="form-label">Senha <a href="#" class="forgot-link" onclick="showForgot()">Esqueci a senha</a></label>
+                <label class="form-label">Senha <a href="#" class="forgot-link" onclick="showForgot(event)">Esqueci a senha</a></label>
                 <input class="form-input" type="password" placeholder="••••••••" id="login-pass">
                 </div>
                 <button class="btn btn-primary btn-full" onclick="doLogin()">Entrar na conta</button>
@@ -60,6 +60,39 @@
     </div>
   </div>
 </div>
+
+<div id="modal-forgot" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 class="modal-title">Recuperar senha</h2>
+            <button class="close-btn" type="button" onclick="closeModal('modal-forgot')">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">E-mail cadastrado</label>
+                <input class="form-input" type="email" placeholder="seu@email.com" id="forgot-email">
+            </div>
+            <button class="btn btn-primary btn-full" type="button" onclick="sendForgot()">Gerar código</button>
+
+            <div id="reset-area" class="reset-area">
+                <div class="reset-code-box">
+                    Código gerado: <strong id="reset-token-preview"></strong>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Código recebido</label>
+                    <input class="form-input" placeholder="ABC123" id="reset-token">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nova senha</label>
+                    <input class="form-input" type="password" placeholder="Mínimo 8 caracteres" id="reset-pass">
+                </div>
+                <button class="btn btn-accent btn-full" type="button" onclick="resetPassword()">Alterar senha</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
 <script src="/frontend/assets/js/login.js"></script>
 </body>
 </html>

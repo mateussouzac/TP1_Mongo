@@ -1,10 +1,11 @@
 const mongoose = require("mongoose");
+require("dotenv").config();
 const Usuario = require("../models/usuario");
 const Produto = require("../models/produto");
 const Pedido = require("../models/pedido");
 
 const conectarEPopular = async () => {
-  await mongoose.connect("mongodb://localhost:27017/puccommerce");
+  await mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/tp1_mongo");
   console.log("Conectou no DB");
 
   // Limpa tudo
