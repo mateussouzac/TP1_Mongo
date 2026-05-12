@@ -3,12 +3,14 @@ const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const Usuario = require("./models/usuario");
+const produtosRouter = require("./routes/produtos");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 app.use("/frontend", express.static(path.join(__dirname, "../../frontend")));
+app.use("/api/produtos", produtosRouter);
 
 const hashSenha = (senha) => {
   const salt = crypto.randomBytes(16).toString("hex");
@@ -60,18 +62,24 @@ app.post("/api/auth/register", async (req, res) => {
     const { nome, sobrenome, email, telefone, senha } = req.body;
 
     if (!nome || !email || !senha) {
-      return res.status(400).json({ message: "Nome, e-mail e senha são obrigatórios." });
+      return res
+        .status(400)
+        .json({ message: "Nome, e-mail e senha são obrigatórios." });
     }
 
     if (senha.length < 8) {
-      return res.status(400).json({ message: "A senha precisa ter no mínimo 8 caracteres." });
+      return res
+        .status(400)
+        .json({ message: "A senha precisa ter no mínimo 8 caracteres." });
     }
 
     const emailNormalizado = email.trim().toLowerCase();
     const usuarioExistente = await Usuario.findOne({ email: emailNormalizado });
 
     if (usuarioExistente) {
-      return res.status(409).json({ message: "Este e-mail já está cadastrado." });
+      return res
+        .status(409)
+        .json({ message: "Este e-mail já está cadastrado." });
     }
 
     const usuario = await Usuario.create({
@@ -96,7 +104,10 @@ app.post("/api/auth/login", async (req, res) => {
       return res.status(400).json({ message: "Preencha e-mail e senha." });
     }
 
-    const usuario = await Usuario.findOne({ email: email.trim().toLowerCase(), ativo: true });
+    const usuario = await Usuario.findOne({
+      email: email.trim().toLowerCase(),
+      ativo: true,
+    });
 
     if (!usuario || !senhaConfere(senha, usuario.senha)) {
       return res.status(401).json({ message: "E-mail ou senha inválidos." });
@@ -121,10 +132,15 @@ app.post("/api/auth/forgot-password", async (req, res) => {
       return res.status(400).json({ message: "Informe o e-mail cadastrado." });
     }
 
-    const usuario = await Usuario.findOne({ email: email.trim().toLowerCase(), ativo: true });
+    const usuario = await Usuario.findOne({
+      email: email.trim().toLowerCase(),
+      ativo: true,
+    });
 
     if (!usuario) {
-      return res.status(404).json({ message: "Não encontramos uma conta com este e-mail." });
+      return res
+        .status(404)
+        .json({ message: "Não encontramos uma conta com este e-mail." });
     }
 
     const token = crypto.randomBytes(3).toString("hex").toUpperCase();
@@ -138,7 +154,9 @@ app.post("/api/auth/forgot-password", async (req, res) => {
       expiresInMinutes: 15,
     });
   } catch (err) {
-    return res.status(500).json({ message: "Erro ao gerar recuperação de senha." });
+    return res
+      .status(500)
+      .json({ message: "Erro ao gerar recuperação de senha." });
   }
 });
 
@@ -147,11 +165,15 @@ app.post("/api/auth/reset-password", async (req, res) => {
     const { email, token, novaSenha } = req.body;
 
     if (!email || !token || !novaSenha) {
-      return res.status(400).json({ message: "Informe e-mail, código e nova senha." });
+      return res
+        .status(400)
+        .json({ message: "Informe e-mail, código e nova senha." });
     }
 
     if (novaSenha.length < 8) {
-      return res.status(400).json({ message: "A nova senha precisa ter no mínimo 8 caracteres." });
+      return res
+        .status(400)
+        .json({ message: "A nova senha precisa ter no mínimo 8 caracteres." });
     }
 
     const usuario = await Usuario.findOne({
