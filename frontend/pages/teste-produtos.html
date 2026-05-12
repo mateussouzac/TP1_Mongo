@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teste - Produtos API</title>
+    <link rel="stylesheet" href="../assets/css/teste-produtos.css" />
+  </head>
+  <body>
+    <h1>Painel de Teste - API de Produtos</h1>
+
+    <!-- ------------------------------------------------------
+     SEÇÃO 1: LISTAR COM FILTROS
+------------------------------------------------------ -->
+    <div class="section">
+      <h2>1. GET /api/produtos - Listar com Filtros</h2>
+
+      <div>
+        <label>Termo (nome):</label>
+        <input id="f-termo" placeholder="ex: camiseta" />
+      </div>
+      <div>
+        <label>Categoria:</label>
+        <input id="f-categoria" placeholder="ex: Roupas" />
+      </div>
+      <div>
+        <label>Preço mínimo:</label>
+        <input id="f-preco-min" type="number" placeholder="ex: 50" />
+      </div>
+      <div>
+        <label>Preço máximo:</label>
+        <input id="f-preco-max" type="number" placeholder="ex: 300" />
+      </div>
+      <div>
+        <label>Avaliação mínima:</label>
+        <input
+          id="f-avaliacao"
+          type="number"
+          placeholder="ex: 4"
+          min="1"
+          max="5"
+        />
+      </div>
+      <div>
+        <label>Cor:</label>
+        <input id="f-cor" placeholder="ex: Preto" />
+      </div>
+      <div>
+        <label>Tamanho:</label>
+        <input id="f-tamanho" placeholder="ex: M" />
+      </div>
+      <div>
+        <label>Ordenar por:</label>
+        <select id="f-ordenar">
+          <option value="">-- padrão --</option>
+          <option value="preco-asc">Preço ↑</option>
+          <option value="preco-desc">Preço ↓</option>
+          <option value="avaliacao">Avaliação</option>
+          <option value="visualizacoes">Visualizações</option>
+        </select>
+      </div>
+
+      <br />
+      <button onclick="listarProdutos()"> Buscar</button>
+      <button onclick="limparFiltros()"> Limpar filtros</button>
+      <pre id="res-listar">Resultado aparecerá aqui...</pre>
+    </div>
+
+    <!-- ------------------------------------------------------
+     SEÇÃO 2: BUSCAR POR ID (incrementa visualizações)
+------------------------------------------------------ -->
+    <div class="section">
+      <h2>2. GET /api/produtos/:id - Buscar por ID ($inc visualizações)</h2>
+      <label>ID do Produto:</label>
+      <input id="get-id" placeholder="ObjectId do produto" />
+      <button onclick="buscarPorId()"> Buscar</button>
+      <pre id="res-get-id">Resultado aparecerá aqui...</pre>
+    </div>
+
+    <!-- ------------------------------------------------------
+     SEÇÃO 3: CRIAR PRODUTO
+------------------------------------------------------ -->
+    <div class="section">
+      <h2>3. POST /api/produtos - Criar Produto</h2>
+      <div>
+        <label>Nome:</label><input id="c-nome" placeholder="ex: Calça Jeans" />
+      </div>
+      <div>
+        <label>Categoria:</label
+        ><input id="c-categoria" placeholder="ex: Roupas" />
+      </div>
+      <div>
+        <label>Preço:</label
+        ><input id="c-preco" type="number" placeholder="ex: 149.90" />
+      </div>
+      <br />
+      <button class="success" onclick="criarProduto()">Criar</button>
+      <pre id="res-criar">Resultado aparecerá aqui...</pre>
+    </div>
+
+    <!-- ------------------------------------------------------
+     SEÇÃO 4: ADICIONAR AVALIAÇÃO ($push)
+------------------------------------------------------ -->
+    <div class="section">
+      <h2>
+        4. POST /api/produtos/:id/avaliacoes - Adicionar Avaliação ($push)
+      </h2>
+      <div>
+        <label>ID do Produto:</label
+        ><input id="av-prod-id" placeholder="ObjectId do produto" />
+      </div>
+      <div>
+        <label>ID do Usuário:</label
+        ><input id="av-user-id" placeholder="ObjectId do usuário" />
+      </div>
+      <div>
+        <label>Nome Usuário:</label
+        ><input id="av-nome" placeholder="ex: João Silva" />
+      </div>
+      <div>
+        <label>Nota (1-5):</label
+        ><input
+          id="av-nota"
+          type="number"
+          min="1"
+          max="5"
+          placeholder="ex: 5"
+        />
+      </div>
+      <div>
+        <label>Comentário:</label
+        ><input id="av-comentario" placeholder="ex: Ótimo produto!" />
+      </div>
+      <br />
+      <button class="success" onclick="adicionarAvaliacao()">
+        Adicionar Avaliação
+      </button>
+      <pre id="res-avaliacao">Resultado aparecerá aqui...</pre>
+    </div>
+
+    <!-- ------------------------------------------------------
+     SEÇÃO 5: REMOVER AVALIAÇÃO ($pull)
+------------------------------------------------------ -->
+    <div class="section">
+      <h2>
+        5. DELETE /api/produtos/:id/avaliacoes/:avaliacaoId - Remover Avaliação
+        ($pull)
+      </h2>
+      <div>
+        <label>ID do Produto:</label
+        ><input id="del-prod-id" placeholder="ObjectId do produto" />
+      </div>
+      <div>
+        <label>ID da Avaliação:</label
+        ><input id="del-av-id" placeholder="ObjectId da avaliação" />
+      </div>
+      <br />
+      <button class="danger" onclick="removerAvaliacao()">
+        🗑 Remover Avaliação
+      </button>
+      <pre id="res-del-av">Resultado aparecerá aqui...</pre>
+    </div>
+
+    <!-- ------------------------------------------------------
+     SEÇÃO 6: CURTIR AVALIAÇÃO ($inc)
+------------------------------------------------------ -->
+    <div class="section">
+      <h2>
+        6. PATCH /api/produtos/:id/avaliacoes/:avaliacaoId/curtir - Curtir
+        ($inc)
+      </h2>
+      <div>
+        <label>ID do Produto:</label
+        ><input id="cur-prod-id" placeholder="ObjectId do produto" />
+      </div>
+      <div>
+        <label>ID da Avaliação:</label
+        ><input id="cur-av-id" placeholder="ObjectId da avaliação" />
+      </div>
+      <br />
+      <button onclick="curtirAvaliacao()">Curtir</button>
+      <pre id="res-curtir">Resultado aparecerá aqui...</pre>
+    </div>
+
+    <!-- ------------------------------------------------------
+     SEÇÃO 7: DELETAR PRODUTO
+------------------------------------------------------ -->
+    <div class="section">
+      <h2>7. DELETE /api/produtos/:id - Deletar Produto (soft delete)</h2>
+      <div>
+        <label>ID do Produto:</label
+        ><input id="del-prod" placeholder="ObjectId do produto" />
+      </div>
+      <br />
+      <button class="danger" onclick="deletarProduto()">
+        🗑 Deletar Produto
+      </button>
+      <pre id="res-del-prod">Resultado aparecerá aqui...</pre>
+    </div>
+
+    <script src="../assets/js/teste-produtos.js"></script>
+  </body>
+</html>
