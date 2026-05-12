@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Produto = require("./models/Produto");
+const Pedido = require("./models/pedido");
 
 const MONGO_URI = "mongodb://localhost:27017/puccommerce";
 
@@ -65,6 +66,112 @@ const main = async () => {
   );
 
   // -- AGGREGATION ---------
+  console.log("[AGGREGATION] Relatórios de produtos e pedidos:\n");
+
+  const relatorioCategoria = await Produto.aggregate([
+    { $match: { ativo: true } },
+    {
+      $group: {
+        _id: "$categoria",
+        quantidade: { $sum: 1 },
+        precoMedio: { $avg: "$preco" },
+        totalVisualizacoes: { $sum: "$visualizacoes" },
+      },
+    },
+    { $sort: { quantidade: -1 } },
+  ]);
+
+  console.log("Produtos por categoria:");
+  relatorioCategoria.forEach((item) =>
+    console.log(
+      ` - ${item._id}: ${item.quantidade} produtos | preço médio R$${item.precoMedio.toFixed(2)} | visualizações ${item.totalVisualizacoes}`,
+    ),
+  );
+  console.log();
+
+  const relatorioAvaliacoes = await Produto.aggregate([
+    { $match: { ativo: true, avaliacoes: { $exists: true, $ne: [] } } },
+    { $unwind: "$avaliacoes" },
+    {
+      $group: {
+        _id: { produtoId: "$_id", nome: "$nome" },
+        mediaNota: { $avg: "$avaliacoes.nota" },
+        totalAvaliacoes: { $sum: 1 },
+      },
+    },
+    { $sort: { mediaNota: -1, totalAvaliacoes: -1 } },
+  ]);
+
+  console.log("Média de avaliações por produto:");
+  relatorioAvaliacoes.forEach((item) =>
+    console.log(
+      ` - ${item._id.nome}: média ${item.mediaNota.toFixed(2)} (${item.totalAvaliacoes} avaliações)`,
+    ),
+  );
+  console.log();
+
+  const relatorioPedidosStatus = await Pedido.aggregate([
+    {
+      $project: {
+        status: 1,
+        totalPedido: { $sum: "$itens.valorTotal" },
+      },
+    },
+    {
+      $group: {
+        _id: "$status",
+        quantidadePedidos: { $sum: 1 },
+        valorTotalVendas: { $sum: "$totalPedido" },
+      },
+    },
+    { $sort: { valorTotalVendas: -1 } },
+  ]);
+
+  console.log("Pedidos por status:");
+  relatorioPedidosStatus.forEach((item) =>
+    console.log(
+      ` - ${item._id}: ${item.quantidadePedidos} pedido(s) | total R$${item.valorTotalVendas.toFixed(2)}`,
+    ),
+  );
+  console.log();
+
+  const topProdutosVendidos = await Pedido.aggregate([
+    { $unwind: "$itens" },
+    {
+      $group: {
+        _id: "$itens.produtoId",
+        quantidadeVendida: { $sum: "$itens.quantidade" },
+        receita: { $sum: "$itens.valorTotal" },
+      },
+    },
+    {
+      $lookup: {
+        from: "produtos",
+        localField: "_id",
+        foreignField: "_id",
+        as: "produto",
+      },
+    },
+    { $unwind: "$produto" },
+    {
+      $project: {
+        _id: 0,
+        produto: "$produto.nome",
+        categoria: "$produto.categoria",
+        quantidadeVendida: 1,
+        receita: 1,
+      },
+    },
+    { $sort: { quantidadeVendida: -1 } },
+  ]);
+
+  console.log("Top produtos vendidos:");
+  topProdutosVendidos.forEach((item) =>
+    console.log(
+      ` - ${item.produto} (${item.categoria}): ${item.quantidadeVendida} unidades | receita R$${item.receita.toFixed(2)}`,
+    ),
+  );
+  console.log();
 
   console.log(" Main executado com sucesso!");
   await mongoose.disconnect();
