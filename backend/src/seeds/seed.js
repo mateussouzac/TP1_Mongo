@@ -5,7 +5,7 @@ const Produto = require("../models/produto");
 const Pedido = require("../models/pedido");
 
 const conectarEPopular = async () => {
-  await mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/tp1_mongo");
+  await mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/puccommerce");
   console.log("Conectou no DB");
 
   // Limpa tudo
@@ -144,6 +144,32 @@ const conectarEPopular = async () => {
       variacoes: [{ cor: "Preto", tamanho: "Único", estoque: 7 }],
       avaliacoes: [],
     },
+    {
+      nome: "Relógio Smart",
+      categoria: "Eletrônicos",
+      preco: 549.9,
+      visualizacoes: 220,
+      variacoes: [
+        { cor: "Preto", tamanho: "Único", estoque: 12 },
+        { cor: "Branco", tamanho: "Único", estoque: 8 },
+      ],
+      avaliacoes: [
+        {
+          usuarioId: usuarios[2]._id,
+          nomeUsuario: "Pedro Costa",
+          nota: 4,
+          comentario: "Design bonito e funcionalidades legais, mas a bateria podia durar mais.",
+          curtidas: 2,
+        },
+        {
+          usuarioId: usuarios[0]._id,
+          nomeUsuario: "João Silva",
+          nota: 5,
+          comentario: "Muito bom para o preço, entrega rápida.",
+          curtidas: 4,
+        },
+      ],
+    },
   ]);
   console.log(`${produtos.length} produtos inseridos.`);
 
@@ -188,6 +214,36 @@ const conectarEPopular = async () => {
           quantidade: 1,
           precoUnitario: 399.9,
           valorTotal: 399.9,
+        },
+      ],
+    },
+    {
+      usuarioId: usuarios[2]._id,
+      status: "cancelado",
+      itens: [
+        {
+          produtoId: produtos[4]._id,
+          quantidade: 1,
+          precoUnitario: 549.9,
+          valorTotal: 549.9,
+        },
+      ],
+    },
+    {
+      usuarioId: usuarios[1]._id,
+      status: "entregue",
+      itens: [
+        {
+          produtoId: produtos[4]._id,
+          quantidade: 2,
+          precoUnitario: 549.9,
+          valorTotal: 1099.8,
+        },
+        {
+          produtoId: produtos[0]._id,
+          quantidade: 1,
+          precoUnitario: 49.9,
+          valorTotal: 49.9,
         },
       ],
     },

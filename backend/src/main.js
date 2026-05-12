@@ -91,23 +91,48 @@ const main = async () => {
 
   const relatorioAvaliacoes = await Produto.aggregate([
     { $match: { ativo: true, avaliacoes: { $exists: true, $ne: [] } } },
-    { $unwind: "$avaliacoes" },
     {
-      $group: {
-        _id: { produtoId: "$_id", nome: "$nome" },
-        mediaNota: { $avg: "$avaliacoes.nota" },
-        totalAvaliacoes: { $sum: 1 },
+      $facet: {
+        porProduto: [
+          { $unwind: "$avaliacoes" },
+          {
+            $group: {
+              _id: { produtoId: "$_id", nome: "$nome" },
+              mediaNota: { $avg: "$avaliacoes.nota" },
+              totalAvaliacoes: { $sum: 1 },
+            },
+          },
+          { $sort: { mediaNota: -1, totalAvaliacoes: -1 } },
+        ],
+        resumoGeral: [
+          { $unwind: "$avaliacoes" },
+          {
+            $group: {
+              _id: null,
+              totalAvaliacoes: { $sum: 1 },
+              notaMediaGeral: { $avg: "$avaliacoes.nota" },
+            },
+          },
+          { $project: { _id: 0 } },
+        ],
       },
     },
-    { $sort: { mediaNota: -1, totalAvaliacoes: -1 } },
   ]);
 
-  console.log("Média de avaliações por produto:");
-  relatorioAvaliacoes.forEach((item) =>
+  console.log("Média de avaliações por produto (via $facet):");
+  relatorioAvaliacoes[0].porProduto.forEach((item) =>
     console.log(
       ` - ${item._id.nome}: média ${item.mediaNota.toFixed(2)} (${item.totalAvaliacoes} avaliações)`,
     ),
   );
+
+  if (relatorioAvaliacoes[0].resumoGeral.length > 0) {
+    const resumo = relatorioAvaliacoes[0].resumoGeral[0];
+    console.log(
+      `Resumo geral: ${resumo.totalAvaliacoes} avaliações | nota média ${resumo.notaMediaGeral.toFixed(2)}`,
+    );
+  }
+
   console.log();
 
   const relatorioPedidosStatus = await Pedido.aggregate([
