@@ -1,6 +1,118 @@
 const express = require("express");
 const router = express.Router();
 const Produto = require("../models/Produto");
+const Pedido = require("../models/pedido");
+
+/* -------------------------------------------------------------------
+    GET /api/produtos/aggregations
+    Relatórios de aggregation para produtos e pedidos.
+   -----------------------------------------------------------------
+*/
+router.get("/aggregations", async (req, res) => {
+  try {
+    const relatorioCategoria = await Produto.aggregate([
+      { $match: { ativo: true } },
+      {
+        $group: {
+          _id: "$categoria",
+          quantidade: { $sum: 1 },
+          precoMedio: { $avg: "$preco" },
+          totalVisualizacoes: { $sum: "$visualizacoes" },
+        },
+      },
+      { $sort: { quantidade: -1 } },
+    ]);
+
+    const relatorioAvaliacoes = await Produto.aggregate([
+      { $match: { ativo: true, avaliacoes: { $exists: true, $ne: [] } } },
+      {
+        $facet: {
+          porProduto: [
+            { $unwind: "$avaliacoes" },
+            {
+              $group: {
+                _id: { produtoId: "$_id", nome: "$nome" },
+                mediaNota: { $avg: "$avaliacoes.nota" },
+                totalAvaliacoes: { $sum: 1 },
+              },
+            },
+            { $sort: { mediaNota: -1, totalAvaliacoes: -1 } },
+          ],
+          resumoGeral: [
+            { $unwind: "$avaliacoes" },
+            {
+              $group: {
+                _id: null,
+                totalAvaliacoes: { $sum: 1 },
+                notaMediaGeral: { $avg: "$avaliacoes.nota" },
+              },
+            },
+            { $project: { _id: 0 } },
+          ],
+        },
+      },
+    ]);
+
+    const relatorioPedidosStatus = await Pedido.aggregate([
+      {
+        $project: {
+          status: 1,
+          totalPedido: { $sum: "$itens.valorTotal" },
+        },
+      },
+      {
+        $group: {
+          _id: "$status",
+          quantidadePedidos: { $sum: 1 },
+          valorTotalVendas: { $sum: "$totalPedido" },
+        },
+      },
+      { $sort: { valorTotalVendas: -1 } },
+    ]);
+
+    const topProdutosVendidos = await Pedido.aggregate([
+      { $unwind: "$itens" },
+      {
+        $group: {
+          _id: "$itens.produtoId",
+          quantidadeVendida: { $sum: "$itens.quantidade" },
+          receita: { $sum: "$itens.valorTotal" },
+        },
+      },
+      {
+        $lookup: {
+          from: "produtos",
+          localField: "_id",
+          foreignField: "_id",
+          as: "produto",
+        },
+      },
+      { $unwind: { path: "$produto", preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          _id: 0,
+          produtoId: "$_id",
+          produto: "$produto.nome",
+          categoria: "$produto.categoria",
+          quantidadeVendida: 1,
+          receita: 1,
+        },
+      },
+      { $sort: { quantidadeVendida: -1 } },
+    ]);
+
+    return res.json({
+      relatorioCategoria,
+      relatorioAvaliacoes: relatorioAvaliacoes[0] || { porProduto: [], resumoGeral: [] },
+      relatorioPedidosStatus,
+      topProdutosVendidos,
+    });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: "Erro ao gerar agregações.", erro: err.message });
+  }
+});
 
 /* -------------------------------------------------------------------
     GET /api/produtos
@@ -104,7 +216,7 @@ router.get("/:id", async (req, res) => {
     const produto = await Produto.findByIdAndUpdate(
       req.params.id,
       { $inc: { visualizacoes: 1 } },
-      { new: true },
+      { returnDocument: 'after' },
     );
 
     if (!produto) {
@@ -161,7 +273,7 @@ router.put("/:id", async (req, res) => {
     const produto = await Produto.findByIdAndUpdate(
       req.params.id,
       { nome, categoria, preco, ativo },
-      { new: true, runValidators: true },
+      { returnDocument: 'after', runValidators: true },
     );
 
     if (!produto) {
@@ -186,7 +298,7 @@ router.delete("/:id", async (req, res) => {
     const produto = await Produto.findByIdAndUpdate(
       req.params.id,
       { ativo: false },
-      { new: true },
+      { returnDocument: 'after' },
     );
 
     if (!produto) {
@@ -228,7 +340,7 @@ router.post("/:id/avaliacoes", async (req, res) => {
           avaliacoes: { usuarioId, nomeUsuario, nota, comentario, curtidas: 0 },
         },
       },
-      { new: true },
+      { returnDocument: 'after' },
     );
 
     if (!produto) {
@@ -258,7 +370,7 @@ router.delete("/:id/avaliacoes/:avaliacaoId", async (req, res) => {
           avaliacoes: { _id: req.params.avaliacaoId },
         },
       },
-      { new: true },
+      { returnDocument: 'after' },
     );
 
     if (!produto) {
@@ -289,7 +401,7 @@ router.patch("/:id/avaliacoes/:avaliacaoId/curtir", async (req, res) => {
       {
         $inc: { "avaliacoes.$.curtidas": 1 },
       },
-      { new: true },
+      { returnDocument: 'after' },
     );
 
     if (!produto) {
